@@ -1,5 +1,6 @@
 package com.hyejeanmoon.mooncounter.ui.components
 
+import android.util.Log
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Text
@@ -13,26 +14,26 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun LeftTimeTextField(
     modifier: Modifier = Modifier,
-    leftTime: Int
+    settingTime: Int
 ) {
-    var time by remember {
-        mutableStateOf(leftTime)
+    var leftTimeState by remember {
+        mutableStateOf(0)
     }
 
-    DisposableEffect(time) {
-        onDispose {
-            time = 0
-        }
+    val elapsedTime by animateIntAsState(
+        targetValue = leftTimeState,
+        animationSpec = tween(
+            durationMillis = leftTimeState * 1000,
+            easing = LinearEasing
+        )
+    )
+
+    DisposableEffect(Unit) {
+        leftTimeState = settingTime
+        onDispose {  }
     }
 
     val infiniteTransition = rememberInfiniteTransition()
-    val factor by infiniteTransition.animateFloat(
-        initialValue = time.toFloat(),
-        targetValue = 0F,
-        animationSpec = infiniteRepeatable(
-            animation = tween(time * 1000, easing = LinearEasing)
-        )
-    )
 
     val scaleFactor by infiniteTransition.animateFloat(
         initialValue = 1F,
@@ -43,17 +44,11 @@ fun LeftTimeTextField(
         )
     )
 
-    val millisecondFactor by infiniteTransition.animateFloat(
-        initialValue = 0F,
-        targetValue = 100F,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = LinearEasing)
-        )
-    )
+    val leftTime = settingTime - elapsedTime
 
-    val hours = (factor / 3600).toInt()
-    val minutes = (factor / 60 - hours * 60).toInt()
-    val seconds = (factor % 60).toInt()
+    val hours = leftTime / 3600
+    val minutes = leftTime / 60 - hours * 60
+    val seconds = leftTime % 60
 
     val hourText = if (hours < 10) "0$hours" else hours
     val minuteText = if (minutes < 10) "0$minutes" else minutes
@@ -66,16 +61,40 @@ fun LeftTimeTextField(
             text = "$hourText : $minuteText : $secondText",
             modifier = Modifier,
             color = Color.Black,
-            fontSize = if(seconds<10)40.sp * scaleFactor else 40.sp
+            fontSize = if(hours == 0 && minutes == 0 && seconds<10)40.sp * scaleFactor else 40.sp
         )
-        Text(
-            text = if (millisecondFactor < 10F) ".0${millisecondFactor.toInt()}" else ".${millisecondFactor.toInt()}",
-            modifier = Modifier,
-            color = Color.Black,
-            fontSize = if(seconds<10)32.sp * scaleFactor else 32.sp
-        )
-
+        millisecondsText(settingTime = leftTime)
     }
+}
+
+@Composable
+fun millisecondsText(
+    modifier: Modifier = Modifier,
+    settingTime: Int
+){
+    var leftTimeState by remember {
+        mutableStateOf(0)
+    }
+
+    val elapsedTime by animateIntAsState(
+        targetValue = leftTimeState,
+        animationSpec = tween(
+            durationMillis = leftTimeState,
+            easing = LinearEasing
+        )
+    )
+
+    DisposableEffect(Unit) {
+        leftTimeState = settingTime * 1000
+        onDispose {  }
+    }
+
+    Text(
+        text = if ((leftTimeState - elapsedTime) % 100 < 10F) ".0${(leftTimeState - elapsedTime)% 100}" else ".${(leftTimeState - elapsedTime)% 100}",
+        modifier = modifier,
+        color = Color.Black,
+        fontSize =  32.sp
+    )
 }
 
 @Composable
@@ -94,7 +113,7 @@ fun SettingDevidingIcon(
 @Composable
 fun PreviewLeftTimeTextField() {
     Column {
-        LeftTimeTextField(leftTime = 78)
+        LeftTimeTextField(settingTime = 78)
         SettingDevidingIcon()
     }
 }

@@ -22,7 +22,7 @@ fun CountDownView(
         modifier = modifier.fillMaxSize(),
     ) {
         LeftTimeAnimationView(
-            leftTime = seconds
+            settingTime = seconds
         )
 
         Column(
@@ -30,7 +30,7 @@ fun CountDownView(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            LeftTimeTextField(leftTime = seconds)
+            LeftTimeTextField(settingTime = seconds)
 
             StopButton(
                 modifier = Modifier.padding(0.dp, 30.dp, 0.dp, 0.dp)

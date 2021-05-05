@@ -5,8 +5,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -19,16 +18,24 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun LeftTimeAnimationView(
     modifier: Modifier = Modifier,
-    leftTime: Int
+    settingTime: Int
 ) {
-    val infiniteTransition = rememberInfiniteTransition()
-    val factor by infiniteTransition.animateFloat(
-        initialValue = 0F,
-        targetValue = 1F,
-        animationSpec = infiniteRepeatable(
-            animation = tween(leftTime * 1000, easing = LinearEasing)
+    var leftTimeState by remember {
+        mutableStateOf(0)
+    }
+
+    val elapsedTime by animateFloatAsState(
+        targetValue = leftTimeState.toFloat(),
+        animationSpec = tween(
+            durationMillis = leftTimeState * 1000,
+            easing = LinearEasing
         )
     )
+
+    DisposableEffect(Unit) {
+        leftTimeState = settingTime
+        onDispose {  }
+    }
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val diameter = size.minDimension
@@ -45,7 +52,7 @@ fun LeftTimeAnimationView(
                 )
             ),
             startAngle = 0F,
-            sweepAngle = factor * 360F,
+            sweepAngle = (elapsedTime/settingTime) * 360F,
             useCenter = true,
             alpha = 0.2F,
             style = Fill
@@ -86,7 +93,7 @@ fun PreviewSecondAnimationView() {
     Box(modifier = Modifier.size(220.dp,220.dp)){
         LeftTimeAnimationView(
             modifier = Modifier.size(200.dp, 200.dp),
-            leftTime = 5
+            settingTime = 5
         )
         SecondTimeAnimationView(
             modifier = Modifier.size(210.dp,210.dp)
